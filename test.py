@@ -4,35 +4,39 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import config as cfg
-from YOLOv1 import YOLOv1Net
+from YOLOv1_beta_1 import YOLOv1Net
 from utils.timer import Timer
 
 #检测的类Detector
 class Detector(object):
 
-    def __init__(self, net, weight_file):   # Yolo网络
-        self.net = net    #网络
-        self.weights_file = weight_file  #保留模型的文件
+    def __init__(self, weight_file_h5):
+        """
+        初始化检测类
+        :param net:
+        :param weight_file:
+        """
+        self.model = YOLOv1Net(False, weight_file_h5)                                   # 从权重文件加载
+        self.weights_file_h5 = weight_file_h5                                           # 保留模型的文件
 
-        self.classes = cfg.CLASSES   # PASCAL VOC数据集的20个类别
-        self.num_class = len(self.classes)  #20
-        self.image_size = cfg.IMAGE_SIZE    #image_size 448
-        self.cell_size = cfg.CELL_SIZE      #cell_size 7
-        self.boxes_per_cell = cfg.BOXES_PER_CELL  #每一个cell预测的框 2
-        self.threshold = cfg.THRESHOLD    #0.2
-        self.iou_threshold = cfg.IOU_THRESHOLD  #iou阈值 0.5
-        self.boundary1 = self.cell_size * self.cell_size * self.num_class  #7*7*20
-        self.boundary2 = self.boundary1 +\
-            self.cell_size * self.cell_size * self.boxes_per_cell    #7*7*20 + 7*7*2
+        self.classes = cfg.CLASSES                                                      # PASCAL VOC数据集的20个类别
+        self.num_class = len(self.classes)                                              # 20
+        self.image_size = cfg.IMAGE_SIZE                                                # image_size 448
+        self.cell_size = cfg.CELL_SIZE                                                  # cell_size 7
+        self.boxes_per_cell = cfg.BOXES_PER_CELL                                        # 每一个cell预测的框 2
+        self.threshold = cfg.THRESHOLD                                                  # 0.2
+        self.iou_threshold = cfg.IOU_THRESHOLD                                          # iou阈值 0.5
+        self.boundary1 = self.cell_size * self.cell_size * self.num_class               # 7*7*20
+        self.boundary2 = self.boundary1 + \
+                         self.cell_size * self.cell_size * self.boxes_per_cell          # 7*7*20 + 7*7*2
 
-        self.sess = tf.Session()
-        self.sess.run(tf.global_variables_initializer())   #tensorflow中初始化全局变量
-
-        print('Restoring weights from: ' + self.weights_file)
-        self.saver = tf.train.Saver()
-        self.saver.restore(self.sess, self.weights_file)  #从模型文件中恢复会话
-
-    def draw_result(self, img, result):   #输出结果
+    def draw_result(self, img, result):
+        """
+        通过OpenCV将结果输出到图片
+        :param img: 测试图片
+        :param result: 中心坐标以及宽高
+        :return:
+        """
         print("hell")
         print(len(result))
         for i in range(len(result)):
@@ -49,7 +53,12 @@ class Detector(object):
                 (x - w + 5, y - h - 7), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                 (0, 0, 0), 1, lineType)
 
-    def detect(self, img):  #检测
+    def detect(self, img):
+        """
+        检测
+        :param img:
+        :return:
+        """
         img_h, img_w, _ = img.shape
         inputs = cv2.resize(img, (self.image_size, self.image_size))   #resize大小
         inputs = cv2.cvtColor(inputs, cv2.COLOR_BGR2RGB).astype(np.float32)
@@ -72,16 +81,18 @@ class Detector(object):
         return result
 
     def detect_from_cvmat(self, inputs):
-        net_output = self.sess.run(self.net.logits,
-                                   feed_dict={self.net.images: inputs})  #网络的输出
-        print("net_output:",net_output.shape)  #其维度为[batch_size, 7*7*30]
+        net_output = self.model.predict(inputs)                                  # 网络的输出[batch_size, 7, 7, 2 * 5 + 20]
+        print("net_output:",net_output.shape)                                    # 其维度为[batch_size, 7*7*30]
         results = []
-        for i in range(net_output.shape[0]):  #把每一张图片的预测放到一个list中
-            results.append(self.interpret_output(net_output[i]))   #这一步是关键
+        for i in range(net_output.shape[0]):                                     # 把每一张图片的预测放到一个list中
+            results.append(self.interpret_output(net_output[i]))                 # 这一步是关键
 
         return results
 
-    def interpret_output(self, output):  #进行阈值筛选（筛选的是类别置信度）和进行非极大值抑制
+    def interpret_output(self, output):
+        #进行阈值筛选（筛选的是类别置信度）和进行非极大值抑制
+        # 将output reshape到[batch_size, (7*7*(2*5+20))]=[batch_size, 1470]
+        output = tf.reshape(output, [-1, self.cell_size * self.cell_size * (self.boxes_per_cell * 5 + self.num_class)])
         probs = np.zeros((self.cell_size, self.cell_size,
                           self.boxes_per_cell, self.num_class))   #维度为[7,7,2,20]
         class_probs = np.reshape(   #reshape之后，其维度为[7, 7, 20]

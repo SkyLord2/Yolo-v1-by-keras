@@ -42,10 +42,11 @@ class YOLOv1Net(object):
         self.training = training                                                    # 训练标记
         self.momentum = cfg.MOMENTUM
         self.epochs = cfg.MAX_ITER
-        if(model_path is None):
-            self.model = self.build_network(num_outputs=self.out_size, alpha=self.alpha, training= training)  # 构建网络，预测值，在本程序中，其格式为 [batch_size , 7 * 7 * （20 + 2 * 5）]，其中的20表示PASCAL VOC数据集的20个类别
-        else:
-            self.model = keras.models.load_model(model_path)
+
+        self.model = self.build_network(num_outputs=self.out_size, alpha=self.alpha, training= training)  # 构建网络，预测值，在本程序中，其格式为 [batch_size , 7 * 7 * （20 + 2 * 5）]，其中的20表示PASCAL VOC数据集的20个类别
+        # 加载模型
+        if (model_path is None):
+            self.model_load(model_path)
     """
     1.正则化 keras.regularizer.Regularizer.l2
     2.LeakRelu激活函数 keras.layers.LeakyRelu
