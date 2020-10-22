@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# --------------------------------------
-# @Time    : 2020/10/01$ 16:58$
-# @Author  : CDS
-# @Email   : chengdongsheng@outlook.com
-# @File    : YOLOv1.py
-# Description :YOLO v1 模型搭建
-# --------------------------------------
+# @Time : 2020/10/22 20:14
+# @Author : cds
+# @Site : https://github.com/SkyLord2?tab=repositories
+# @Email: chengdongsheng@outlook.com
+# @File : YOLOv1.py
+# @Software: PyCharm
+
 
 import tensorflow as tf
 import tensorflow.keras as keras

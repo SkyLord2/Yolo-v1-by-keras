@@ -13,7 +13,7 @@ Yolo v1 implemented by keras
 	
 	我们将目标探测重新构建为了一个单一回归问题，直接从像素到边界框坐标和类别概率。使用我们的系统，一张图片你只需要看一次（YOLO）你就可以预测物品是什么以及他们在什么地方。
 	
-	![1](./papperimage/1.png)
+	![1](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/1.png)
 	
 	图1. YOLO检测系统 使用YOLO处理图像非常简单明了。 我们的系统（1）将输入图像的大小调整为448×448，（2）在图像上运行单个卷积网络，并且（3）通过模型的置信度对检测结果进行阈值化
 	
@@ -42,7 +42,7 @@ Yolo v1 implemented by keras
 	
 	在测试阶段，我们将每个边界框的置信度乘以条件类别概率，Pr(Classi|Object) ∗ Pr(Object) ∗ IOU_pred^truth = Pr(Classi) ∗ IOU_pred^truth (1)，从而得到每个边界框特定类别的置信度。这些分数编码该类别出现在边界框中的概率以及预测的盒子包含对象的合适程度。
 	
-	![2](./papperimage/2.png)
+	![2](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/2.png)
 	
 	图2 我们的系统将检测建模为回归问题。 它将图像划分为S×S网格，并为每个网格单元预测B边界框，这些框的置信度和C类概率。 这些预测被编码为S×S×（B * 5 + C）张量。
 	
@@ -52,7 +52,7 @@ Yolo v1 implemented by keras
 	
 	我们的网络架构受到了图片分类模型GoogLeNet的启发。我们的网络由24个卷积层以及2个全连接层组成。我们只是用了1X1的降维层以及3X3的卷积层，而没有使用GoogLeNet的Inception层，这类似与Lin。完整的网络结构如图3所示。
 	
-	![3](./papperimage/3.png)
+	![3](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/3.png)
 			
 	图3 网路结构。检测网络由24个卷积层以及2个全连接层组成。交替的1X1的卷积层降低了前一层输出特征的维度。我们在ImageNet分类任务中以一半的分辨率（224×224输入图像）对卷积层进行预训练，然后将分辨率提高一倍进行测试。
 	
@@ -69,7 +69,7 @@ Yolo v1 implemented by keras
 	
 	我们在最后一层使用线性激活函数，其他层使用下面泄露的非线性整流单元：
 	
-	![f1](./papperimage/f1.png)
+	![f1](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/f1.png)
 										
 	我们在模型的输出使用平方和误差来优化我们的模型。我们之所以使用平方和误差是因为该误差函数易于优化，但是它并不完全符合我们实现平均精度最大化的目标。它对定位误差和分类误差的权重相等，这可能不恰当。此外，在每个图像中，许多网格单元都不包含任何对象。这就会使这些网格的置信度变为0，其反向传播时的梯度通常会超过确实包含对象的网格的梯度，这可能会导致模型不稳定，从而导致训练在早期就出现分歧。我们知道在训练过程中(loss逐渐降低)，不含目标的检测框其置信度向0收敛，包含目标的检测框的置信度向1收敛。由于最终的98个检测框中，大部分均不含目标，所以这种noobj的检测框在loss中占的比重更大，会导致其对总体loss下降的贡献也越大，使得包含目标的检测框向1收敛(训练的一个重要目的)的速度较慢。这不是我们想要的结果，因此对其设置权值可以有效地抑制这种情况的发生。
 	
@@ -81,7 +81,7 @@ Yolo v1 implemented by keras
 	
 	在训练期间，我们优化如下，有多个部分组成损失函数：
 				
-	![f2](./papperimage/f2.png)
+	![f2](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/f2.png)
 						
 	此处，l_i^obj   表示目标出现在网格i中，l_ij^obj   表示网格i中的第j个边界框负责预测。
 	
@@ -145,7 +145,7 @@ Yolo v1 implemented by keras
 	
 	最近的Faster R-CNN使用神经网络来代替选择性搜索去找到候选边界框，与Szegedy 等人的工作类似。[8]在我们的测试中，他们最准确的模型可以达到7fps，而较小的，精度较低的模型则可以18fps运行。 Faster R-CNN的VGG-16版本的mAP能提高10个点，但比YOLO慢6倍。 ZeilerFergus Faster R-CNN仅比YOLO慢2.5倍，但同时准确性仍然较低。
 	
-	![t1](./papperimage/t1.png)
+	![t1](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/t1.png)
 								
 	表1 实时检测系统在PASCAL VOC 2007数据集上的检测结果。比较了目标检测系统之间的性能与速度。Fast YOLO是PASCAL VOC数据集上检测速度最快的目标检测模型，准确度是其他目标检测模型的两倍。YOLO的mAP比Fast版本高了10个百分点。
 	
@@ -159,7 +159,7 @@ Yolo v1 implemented by keras
 		Ø 其他：分类错误，IOU > 0.1
 		Ø 背景：任何对象的 IOU < 0.1
 	图4显示了在所有的20个类别上每种错误类型平均值的分解图。
-							![4](./papperimage/4.png)
+							![4](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/4.png)
 	
 									图4 误差分析：Fast R-CNN VS YOLO 上述两图展示了在Top N检测中的定位和背景误差
 	YOLO仍然需要提高定位精度。定位误差占YOLO总误差的比例超过了所有其他来源的总和。Fast R-CNN的定位误差更小一些，但是背景误差很大。Top-N检测中有13.6%不包含任何对象，但是被识别为对象。Fast R-CNN的背景识别误差是YOLO的三倍。
@@ -167,7 +167,7 @@ Yolo v1 implemented by keras
 ### 4.3 Fast R-CNN与YOLO结合
 	与Fast R-CNN相比，YOLO产生的背景误差少得多。通过使用YOLO来消除Fast R-CNN的背景检测误差，我们可以显著提高性能。对于R-CNN预测的每个边界框，我们都会检查YOLO是否预测了类似的边界框。如果是这样，我们将根据YOLO预测的概率和两个框之间的重叠来对该预测进行增强。最佳的Fast R-CNN模型在VOC 2007测试集上的mAP达到71.8％。 与YOLO结合使用时，其mAP增长3.2％，达到75.0％。我们还尝试将最好的Fast R-CNN模型与Fast R-CNN的其他几个版本结合使用。 这些组合模型的mAP在0.3%和0.6％之间有小幅增加，有关详细信息，请参见表2。
 		
-		![t2](./papperimage/t2.png)
+		![t2](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/t2.png)
 								
 	表2 VOC2007上的模型组合实验 我们测试了将其他几个Fast R-CNN模型与最好的Fast R-CNN组合的效果，发现其他版本的Fast R-CNN只能带来很小性能提升，但是YOLO能够带来可观的性能提升。
 	
@@ -178,7 +178,7 @@ Yolo v1 implemented by keras
 ### 4.4 VOC2012上的测试结果
 	在VOC2012的测试集上，YOLO的mAP达到了57.9%。低于当前的最新检测模型，接近于使用VGG-16作为骨干的R-CNN，详见图3。与其它相似的模型相比，我们的模型难以检测小物体。在瓶子、绵羊和电视/监视器等类型的物体识别中，YOLO的得分比R-CNN或Feature Edit低8-10%。然而，在其他类别，如猫和火车，YOLO取得了更高的表现。
 	
-	![t3](./papperimage/t3.png)
+	![t3](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/t3.png)
 	
 	表3 PASCAL VOC2012 排行榜 截至2015年11月6日，YOLO与完整的comp4（允许外部数据）公共排行榜进行了比较。显示了各种检测方法的mAP精度和每类平均精度。 YOLO是唯一的实时检测器。 Fast R-CNN + YOLO是得分最高的方法，比Fast R-CNN高2.3％。
 	
@@ -189,10 +189,10 @@ Yolo v1 implemented by keras
 	
 	图5展示了YOLO与各个模型的性能比较，作为参考基准，我们给出了各个模型在VOC 2007上训练，并且预测人物的AP指标。各个模型在VOC2012上训练，在Picasso数据集上预测，在VOC2010数据集上训练，在People-Art数据集上预测。
 	
-	![5](./papperimage/5.png)
+	![5](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/5.png)
 										图5 关于Picasso和People-Art数据集上的泛化结果。
 	
-	![6](./papperimage/6.png)
+	![6](https://github.com/SkyLord2/Yolo-v1-by-keras/tree/main/papperimage/6.png)
 					图6 定性结果。 YOLO运行样本作品和来自互联网的自然图像。 尽管它确实认为一个人是一架飞机，但大多数情况下都是准确的。
 	
 	R-CNN在VOC 2007上具有较高的AP。但是，R-CNN在应用于艺术品数据集上预测时会性能大幅下降。 R-CNN将“选择性搜索”用于候选边界框的选择，该建议针对自然图像进行了调整。 R-CNN中的分类器步骤只能看到很小的区域，并且依赖于好的候选边界框。
