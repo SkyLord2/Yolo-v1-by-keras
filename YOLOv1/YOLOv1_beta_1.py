@@ -143,6 +143,7 @@ class YOLOv1Net(object):
         model.add(keras.layers.Dense(4096, name="fc2"))
         model.add(keras.layers.LeakyReLU(alpha=alpha, name="leaky_relu26"))
         model.add(keras.layers.Dropout(rate=keep_prob, name="dropout1"))
+        # 1470
         model.add(keras.layers.Dense(num_outputs, activation=None, name="fc3"))
         # 调整输出的形状为 [batch_size, 7, 7, 30]
         model.add(keras.layers.Lambda(lambda x: tf.reshape(x, [-1, self.cell_size, self.cell_size, self.boxes_per_cell * 5 + self.num_class]), name="reshape_out"))

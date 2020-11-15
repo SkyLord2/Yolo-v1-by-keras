@@ -11,6 +11,7 @@ class pascal_voc(object):
     def __init__(self, phase, rebuild=False):
         self.devkil_path = os.path.join(cfg.PASCAL_PATH, 'VOCdevkit')   #data/pascal_voc/VOCdevkit
         self.data_path = os.path.join(self.devkil_path, 'VOC2007')      #data/pascal_voc/VOCdevkit/VOC2007
+        print("file path=", os.path.abspath(__file__))
         self.cache_path = cfg.CACHE_PATH             #data/pascal_voc/cache
         self.batch_size = cfg.BATCH_SIZE             #batch size 为 45
         self.image_size = cfg.IMAGE_SIZE             # image_size为 448*448
@@ -32,6 +33,42 @@ class pascal_voc(object):
             (self.batch_size, self.cell_size, self.cell_size, 25))
         count = 0
         while count < self.batch_size:
+            imname = self.gt_labels[self.cursor]['imname']
+            flipped = self.gt_labels[self.cursor]['flipped']
+            images[count, :, :, :] = self.image_read(imname, flipped)  #读取图片
+            labels[count, :, :, :] = self.gt_labels[self.cursor]['label']   #图片的label
+            count += 1
+            self.cursor += 1
+            if self.cursor >= len(self.gt_labels):
+                np.random.shuffle(self.gt_labels)  #随机打乱gt_labels
+                self.cursor = 0
+                self.epoch += 1     #epoch加1
+        return images, labels      #返回batch_size大小的图片和对应的label，注意其shape
+    
+    def get_all(self):   #获取到batch_size大小的图片和对应的label
+        total_size = len(self.gt_labels)
+        images = np.zeros(
+            (total_size, self.image_size, self.image_size, 3))
+        labels = np.zeros(
+            (total_size, self.cell_size, self.cell_size, 25))
+        count = 0
+        while count < total_size:
+            imname = self.gt_labels[self.cursor]['imname']
+            flipped = self.gt_labels[self.cursor]['flipped']
+            images[count, :, :, :] = self.image_read(imname, flipped)  #读取图片
+            labels[count, :, :, :] = self.gt_labels[self.cursor]['label']   #图片的label
+            count += 1
+            self.cursor += 1
+        return images, labels      #返回batch_size大小的图片和对应的label，注意其shape
+    
+    def get_by_size(self, size):   #获取到batch_size大小的图片和对应的label
+        print("total size: ", len(self.gt_labels))
+        images = np.zeros(
+            (size, self.image_size, self.image_size, 3))
+        labels = np.zeros(
+            (size, self.cell_size, self.cell_size, 25))
+        count = 0
+        while count < size:
             imname = self.gt_labels[self.cursor]['imname']
             flipped = self.gt_labels[self.cursor]['flipped']
             images[count, :, :, :] = self.image_read(imname, flipped)  #读取图片
@@ -91,6 +128,7 @@ class pascal_voc(object):
         if self.phase == 'train':       #train
             txtname = os.path.join(
                 self.data_path, 'ImageSets', 'Main', 'trainval.txt')   #加载trainval.txt文件
+            print("trainval path=", txtname)
         else:                 #test
             txtname = os.path.join(
                 self.data_path, 'ImageSets', 'Main', 'test.txt')
